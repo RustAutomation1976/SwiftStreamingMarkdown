@@ -22,14 +22,33 @@ struct ParagraphView: UIViewRepresentable {
     let openUrlFunction = openURL.callAsFunction(_:)
     let view = ParagraphViewCache.shared.createOrReuseView(contents: contents, lineSpacing: lineSpacing)
     view.onUrlTap = openUrlFunction
+    // Set on every make: cached views are recycled across documents and would
+    // otherwise keep the previous document's timing.
+    view.setTextAnimation(config.textAnimation)
     view.setParagraphContents(contents, lineSpacing: lineSpacing, animatedByWord: false)
     view.setTextContextMenu(config.textContextMenu)
     view.setMarkdownController(markdownController)
 
     if config.shouldAnimateText {
+      let animation = config.textAnimation
       view.alpha = 0
-      UIView.animate(withDuration: ParagraphUIView.animationDuration) {
-        view.alpha = 1
+      if animation.blockEnterRise == 0 {
+        UIView.animate(withDuration: animation.blockEnterDuration) {
+          view.alpha = 1
+        }
+      } else {
+        // A transform is not layout, so the rise cannot fight SwiftUI's sizing.
+        // A strong ease-out (cubic-bezier(0.16, 1, 0.3, 1)) lands the block
+        // early in its duration instead of easing in and out of the motion.
+        view.transform = CGAffineTransform(translationX: 0, y: animation.blockEnterRise)
+        UIViewPropertyAnimator(
+          duration: animation.blockEnterDuration,
+          controlPoint1: CGPoint(x: 0.16, y: 1),
+          controlPoint2: CGPoint(x: 0.3, y: 1)
+        ) {
+          view.alpha = 1
+          view.transform = .identity
+        }.startAnimation()
       }
     }
 
@@ -37,6 +56,8 @@ struct ParagraphView: UIViewRepresentable {
   }
 
   func updateUIView(_ view: ParagraphUIView, context: Context) {
+    // Before the contents, so the words this update appends use the current timing.
+    view.setTextAnimation(config.textAnimation)
     if view.paragraphContents != contents || view.lineSpacing != lineSpacing {
       let shouldAnimate = view.window != nil && config.shouldAnimateText // only animate when visible
       view.setParagraphContents(contents, lineSpacing: lineSpacing, animatedByWord: shouldAnimate)

@@ -1,5 +1,20 @@
 # SwiftStreamingMarkdown
 
+> **Fork note (RustAutomation1976, branch `rust/fade-tuning`).** This is a fork of
+> [microsoft/SwiftStreamingMarkdown](https://github.com/microsoft/SwiftStreamingMarkdown)
+> that makes the streaming fade-in timing configurable. It adds
+> `MarkdownRenderConfig.textAnimation` (`TextAnimationConfig`: `wordFadeDuration`,
+> `wordStagger`, `maxTotalStagger`, `blockEnterDuration`, `blockEnterRise` (UIKit only; a non-zero rise also
+> switches the entrance to a strong ease-out curve), plus a
+> `withTextAnimation(value:)` builder) in place of the hardcoded
+> `ParagraphAnimationConstants`. Per-word stagger is now
+> `min(wordStagger, maxTotalStagger / wordCount)`, so small batches get a fixed
+> per-word delay and bursts compress to finish within the cap. The defaults reproduce
+> upstream's timing exactly, so the fork is a no-op unless the new config is set. It
+> exists so an app can match a faster, softer web reveal (180ms word fades, 10ms
+> stagger capped at 200ms, a 200ms block entrance). Licence unchanged (MIT, see
+> [LICENSE](LICENSE)).
+
 [![CI](https://github.com/microsoft/SwiftStreamingMarkdown/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/microsoft/SwiftStreamingMarkdown/actions/workflows/ci.yml)
 [![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
 [![iOS 16+](https://img.shields.io/badge/iOS-16%2B-blue.svg)](https://developer.apple.com/ios/)

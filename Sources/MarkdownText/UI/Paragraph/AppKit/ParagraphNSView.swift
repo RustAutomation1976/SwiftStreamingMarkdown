@@ -17,13 +17,13 @@ private struct CachedParagraphNSViewSize {
 
 class ParagraphNSView: NSTextView {
   private static let jsonEncoder = JSONEncoder()
-  static let animationDuration: CFTimeInterval = ParagraphAnimationConstants.fadeInDuration
 
   private(set) var paragraphContents: NSMutableAttributedString = NSMutableAttributedString()
   private(set) var lineSpacing: CGFloat?
   private var activeAnimations: [FadeAnimationData] = []
   private var fadeAnimationDisplayLink: CADisplayLink?
   private var cachedSize: CachedParagraphNSViewSize?
+  private(set) var textAnimation: MarkdownRenderConfig.TextAnimationConfig = .default
 
   var textContextMenu: TextContextMenu?
   var markdownController: MarkdownController?
@@ -144,13 +144,12 @@ class ParagraphNSView: NSTextView {
     if animatedByWord, newContentLength > 0 {
       let newContentRange = NSRange(location: oldLength, length: newContentLength)
       let wordRanges = finalString.splitIntoWords(withIn: newContentRange)
-      let wordCount = wordRanges.count
-      let delayBetweenWords: Double = ParagraphAnimationConstants.delayBetweenWordsRatio / Double(max(wordCount, 1))
+      let delayBetweenWords = paragraphWordStagger(wordCount: wordRanges.count, animation: textAnimation)
       let baseStartTime = CACurrentMediaTime()
       for (index, wordRange) in wordRanges.enumerated() {
         let animationData = FadeAnimationData(
           startTime: baseStartTime + Double(index) * delayBetweenWords,
-          duration: Self.animationDuration,
+          duration: textAnimation.wordFadeDuration,
           range: wordRange
         )
         activeAnimations.append(animationData)
@@ -312,6 +311,12 @@ class ParagraphNSView: NSTextView {
 
   func setTextContextMenu(_ menu: TextContextMenu?) {
     textContextMenu = menu
+  }
+
+  /// Timing for word fades started by later appends. Words already fading keep
+  /// the timing they started with.
+  func setTextAnimation(_ animation: MarkdownRenderConfig.TextAnimationConfig) {
+    textAnimation = animation
   }
 
   func setMarkdownController(_ controller: MarkdownController?) {

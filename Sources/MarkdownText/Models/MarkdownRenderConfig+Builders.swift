@@ -19,7 +19,8 @@ extension MarkdownRenderConfig {
       textContextMenu: textContextMenu,
       citationConfig: citationConfig,
       codeBlockConfig: codeBlockConfig,
-      blockSpacing: blockSpacing
+      blockSpacing: blockSpacing,
+      textAnimation: textAnimation
     )
   }
 
@@ -36,7 +37,8 @@ extension MarkdownRenderConfig {
       textContextMenu: textContextMenu,
       citationConfig: citationConfig,
       codeBlockConfig: codeBlockConfig,
-      blockSpacing: blockSpacing
+      blockSpacing: blockSpacing,
+      textAnimation: textAnimation
     )
   }
 
@@ -53,7 +55,8 @@ extension MarkdownRenderConfig {
       textContextMenu: textContextMenu,
       citationConfig: citationConfig,
       codeBlockConfig: codeBlockConfig,
-      blockSpacing: blockSpacing
+      blockSpacing: blockSpacing,
+      textAnimation: textAnimation
     )
   }
 
@@ -70,7 +73,8 @@ extension MarkdownRenderConfig {
       textContextMenu: textContextMenu,
       citationConfig: citationConfig,
       codeBlockConfig: codeBlockConfig,
-      blockSpacing: blockSpacing
+      blockSpacing: blockSpacing,
+      textAnimation: textAnimation
     )
   }
 
@@ -87,7 +91,8 @@ extension MarkdownRenderConfig {
       textContextMenu: textContextMenu,
       citationConfig: citationConfig,
       codeBlockConfig: codeBlockConfig,
-      blockSpacing: blockSpacing
+      blockSpacing: blockSpacing,
+      textAnimation: textAnimation
     )
   }
 
@@ -104,7 +109,8 @@ extension MarkdownRenderConfig {
       textContextMenu: textContextMenu,
       citationConfig: citationConfig,
       codeBlockConfig: codeBlockConfig,
-      blockSpacing: blockSpacing
+      blockSpacing: blockSpacing,
+      textAnimation: textAnimation
     )
   }
 
@@ -121,7 +127,8 @@ extension MarkdownRenderConfig {
       textContextMenu: textContextMenu,
       citationConfig: citationConfig,
       codeBlockConfig: codeBlockConfig,
-      blockSpacing: blockSpacing
+      blockSpacing: blockSpacing,
+      textAnimation: textAnimation
     )
   }
 
@@ -139,7 +146,8 @@ extension MarkdownRenderConfig {
       textContextMenu: value,
       citationConfig: citationConfig,
       codeBlockConfig: codeBlockConfig,
-      blockSpacing: blockSpacing
+      blockSpacing: blockSpacing,
+      textAnimation: textAnimation
     )
   }
 
@@ -156,7 +164,8 @@ extension MarkdownRenderConfig {
       textContextMenu: textContextMenu,
       citationConfig: citationConfig,
       codeBlockConfig: codeBlockConfig,
-      blockSpacing: value
+      blockSpacing: value,
+      textAnimation: textAnimation
     )
   }
 
@@ -173,7 +182,26 @@ extension MarkdownRenderConfig {
       textContextMenu: textContextMenu,
       citationConfig: citationConfig,
       codeBlockConfig: value,
-      blockSpacing: blockSpacing
+      blockSpacing: blockSpacing,
+      textAnimation: textAnimation
+    )
+  }
+
+  /// Returns a copy with `textAnimation` replaced.
+  public func withTextAnimation(value: TextAnimationConfig) -> MarkdownRenderConfig {
+    MarkdownRenderConfig(
+      shouldAnimateText: shouldAnimateText,
+      blockQuoteStyle: blockQuoteStyle,
+      headingStyle: headingStyle,
+      orderedListStyle: orderedListStyle,
+      paragraphStyle: paragraphStyle,
+      tableStyle: tableStyle,
+      inlineStyle: inlineStyle,
+      textContextMenu: textContextMenu,
+      citationConfig: citationConfig,
+      codeBlockConfig: codeBlockConfig,
+      blockSpacing: blockSpacing,
+      textAnimation: value
     )
   }
 }

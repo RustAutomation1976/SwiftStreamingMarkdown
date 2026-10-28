@@ -37,6 +37,9 @@ public struct MarkdownRenderConfig: Hashable, Sendable {
   /// Vertical spacing between adjacent blocks (paragraphs, headings,
   /// code blocks, lists, etc.). Defaults to 30.
   public let blockSpacing: CGFloat
+  /// Timing of the paragraph fade-in used when `shouldAnimateText` is `true`.
+  /// Ignored otherwise.
+  public let textAnimation: TextAnimationConfig
 
   /// Font and color style for a uniformly-styled run of markdown text.
   public struct MarkdownTextStyle: Hashable, Sendable {
@@ -179,6 +182,57 @@ public struct MarkdownRenderConfig: Hashable, Sendable {
     )
   }
 
+  /// Timing of the streaming fade-in on paragraph text.
+  ///
+  /// Each append to a paragraph is split into words. Word `i` of the batch
+  /// starts fading in `i * stagger` after the batch lands, where
+  /// `stagger = min(wordStagger, maxTotalStagger / wordCount)`: small batches
+  /// get the full per-word stagger, and large batches (a burst or a replayed
+  /// backlog) are compressed so the last word starts before `maxTotalStagger`.
+  /// An append that grows the paragraph leaves words from earlier batches that
+  /// are still fading on their own start times. A change that does not grow it
+  /// (or one made while the view is off-window) shows all text fully opaque.
+  ///
+  /// The defaults reproduce the library's original behavior: every batch is
+  /// spread evenly over 100ms, each word fades over 500ms, and a newly created
+  /// paragraph view fades its whole alpha in over 500ms without moving.
+  public struct TextAnimationConfig: Hashable, Sendable {
+    /// Duration of each word's opacity fade, in seconds.
+    public let wordFadeDuration: TimeInterval
+    /// Preferred delay between consecutive word starts within one batch, in
+    /// seconds, before burst compression.
+    public let wordStagger: TimeInterval
+    /// Upper bound on the spread of word starts within one batch, in seconds.
+    public let maxTotalStagger: TimeInterval
+    /// Duration of the whole-view fade-in when a paragraph view first appears.
+    public let blockEnterDuration: TimeInterval
+    /// Distance in points a newly appearing paragraph view rises while it fades
+    /// in. When non-zero, the UIKit entrance also switches from the default
+    /// ease-in-out curve to a strong ease-out, cubic-bezier(0.16, 1, 0.3, 1).
+    /// Zero keeps the original alpha-only entrance. Applied on UIKit only;
+    /// AppKit paragraphs fade without moving on the default curve.
+    public let blockEnterRise: CGFloat
+
+    /// Create a text animation configuration. Every parameter defaults to the
+    /// library's original timing.
+    public init(
+      wordFadeDuration: TimeInterval = 0.5,
+      wordStagger: TimeInterval = 0.1,
+      maxTotalStagger: TimeInterval = 0.1,
+      blockEnterDuration: TimeInterval = 0.5,
+      blockEnterRise: CGFloat = 0
+    ) {
+      self.wordFadeDuration = wordFadeDuration
+      self.wordStagger = wordStagger
+      self.maxTotalStagger = maxTotalStagger
+      self.blockEnterDuration = blockEnterDuration
+      self.blockEnterRise = blockEnterRise
+    }
+
+    /// The library's original fade-in timing.
+    public static let `default` = TextAnimationConfig()
+  }
+
   /// Default inter-block spacing.
   public static let defaultBlockSpacing: CGFloat = 30
 
@@ -246,7 +300,8 @@ public struct MarkdownRenderConfig: Hashable, Sendable {
     textContextMenu: TextContextMenu? = nil,
     citationConfig: CitationConfig = .default,
     codeBlockConfig: CodeBlockConfig = .default,
-    blockSpacing: CGFloat = MarkdownRenderConfig.defaultBlockSpacing
+    blockSpacing: CGFloat = MarkdownRenderConfig.defaultBlockSpacing,
+    textAnimation: TextAnimationConfig = .default
   ) {
     self.shouldAnimateText = shouldAnimateText
     self.blockQuoteStyle = blockQuoteStyle
@@ -259,6 +314,7 @@ public struct MarkdownRenderConfig: Hashable, Sendable {
     self.citationConfig = citationConfig
     self.codeBlockConfig = codeBlockConfig
     self.blockSpacing = blockSpacing
+    self.textAnimation = textAnimation
   }
 
   /// The default render config, equivalent to calling `init()` with no

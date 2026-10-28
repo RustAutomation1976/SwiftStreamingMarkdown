@@ -26,14 +26,18 @@ struct ParagraphView: NSViewRepresentable {
     // paragraph gets its own view instead.
     let view = ParagraphNSView()
     view.onUrlTap = openUrlFunction
+    view.setTextAnimation(config.textAnimation)
     view.setParagraphContents(contents, lineSpacing: lineSpacing, animatedByWord: false)
     view.setTextContextMenu(config.textContextMenu)
     view.setMarkdownController(markdownController)
 
     if config.shouldAnimateText {
+      let enterDuration = config.textAnimation.blockEnterDuration
       view.alphaValue = 0
+      // `blockEnterRise` is not applied here: offsetting an NSView needs a
+      // layer-backed transform that SwiftUI's hosting does not guarantee.
       NSAnimationContext.runAnimationGroup { ctx in
-        ctx.duration = ParagraphNSView.animationDuration
+        ctx.duration = enterDuration
         view.animator().alphaValue = 1
       }
     }
@@ -42,6 +46,8 @@ struct ParagraphView: NSViewRepresentable {
   }
 
   func updateNSView(_ view: ParagraphNSView, context: Context) {
+    // Before the contents, so the words this update appends use the current timing.
+    view.setTextAnimation(config.textAnimation)
     if view.paragraphContents != contents || view.lineSpacing != lineSpacing {
       let shouldAnimate = view.window != nil && config.shouldAnimateText
       view.setParagraphContents(contents, lineSpacing: lineSpacing, animatedByWord: shouldAnimate)

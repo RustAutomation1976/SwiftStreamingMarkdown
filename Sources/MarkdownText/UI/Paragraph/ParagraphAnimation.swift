@@ -5,11 +5,6 @@
 
 import Foundation
 
-enum ParagraphAnimationConstants {
-  static let fadeInDuration: CFTimeInterval = 0.5
-  static let delayBetweenWordsRatio: Double = 0.1
-}
-
 struct FadeAnimationData {
   let id: UUID = UUID()
   let startTime: CFTimeInterval
@@ -28,4 +23,12 @@ func paragraphEaseOut(_ t: CGFloat) -> CGFloat {
   let mt2 = mt * mt
 
   return 3 * mt2 * t * c2 + 3 * mt * t2 * c4 + t3
+}
+
+/// Delay between consecutive word starts for one appended batch of `wordCount`
+/// words, shared between iOS and macOS paragraph views. Compressing by
+/// `wordCount` (rather than `wordCount - 1`) keeps the default configuration
+/// identical to the original `0.1 / wordCount` spread.
+func paragraphWordStagger(wordCount: Int, animation: MarkdownRenderConfig.TextAnimationConfig) -> CFTimeInterval {
+  min(animation.wordStagger, animation.maxTotalStagger / Double(max(wordCount, 1)))
 }
