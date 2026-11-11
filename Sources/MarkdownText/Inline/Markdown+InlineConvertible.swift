@@ -70,6 +70,10 @@ extension Markdown.Strikethrough: InlineConvertible {
 }
 
 extension Markdown.Link: InlineConvertible {
+  /// Destinations the host app mints for inline annotations rather than navigation (the RUSTY
+  /// app's smart links). `.invalid` is reserved, so no real link can start with it.
+  static let smartLinkPrefix = "https://rusty.invalid/smart/"
+
   /// True when this link is a citation that should render as an attachment
   /// bubble. Delegates to the supplied `CitationCoder` so the marker /
   /// query-param format is configurable per render.
@@ -118,6 +122,13 @@ extension Markdown.Link: InlineConvertible {
       }
       // Fallback to empty string if we can't extract the title
       return NSMutableAttributedString(string: "")
+    } else if destination.hasPrefix(Self.smartLinkPrefix) {
+      // A smart link (a unit value, a figure) annotates the prose rather than leaving it: it
+      // keeps the run's own font, weight and colour, so "**150 psig**" stays bold, and marks
+      // itself with a dotted underline instead of reading as a hyperlink.
+      container[.link] = url
+      container[.underlineStyle] = NSUnderlineStyle.single.union(.patternDot).rawValue
+      return buildAttributedString()
     } else {
       // Is a real link, provided as markdown
       container[.link] = url
